@@ -1,0 +1,176 @@
+--Name: Immanuel Ponminissery
+--Assignment 3
+
+--Q1
+
+SELECT first_name, last_name, email, birthdate
+FROM USER_TABLE
+ORDER BY last_name;
+
+--Q2
+
+--using string concatenation
+SELECT first_name ||' '|| last_name AS user_full_name
+FROM USER_TABLE
+WHERE last_name LIKE 'M%' OR last_name LIKE 'K%' OR last_name LIKE 'L%'
+ORDER BY first_name desc;
+
+--Q3
+
+SELECT title, subtitle, upload_date, views, likes
+FROM VIDEO
+WHERE upload_date BETWEEN '01-JAN-20' AND '21-SEP-20'
+ORDER BY upload_date DESC;
+
+--Q4
+
+SELECT title, subtitle, upload_date, views, likes
+FROM VIDEO
+WHERE upload_date >='01-JAN-20' AND upload_date <='21-SEP-20'
+ORDER BY upload_date DESC;
+
+--Q5
+
+--Question asks for first 3 rows from the table and from the context of the question, it seems like the Video table
+SELECT video_id, video_size AS "video_size_MB", likes AS "Likes_Earned", video_length AS "video_length_sec", TRUNC(video_length/60,1) AS "video_length_min"
+FROM VIDEO
+WHERE ROWNUM<=3
+ORDER BY "Likes_Earned" DESC;
+
+--Q6
+
+SELECT title
+FROM (SELECT title, video_id, video_size AS "video_size_MB", likes AS "Likes_Earned", video_length AS "video_length_sec", TRUNC(video_length/60,1) AS "video_length_min" FROM video
+    WHERE TRUNC(video_length/60,1) >= 6
+    ORDER BY "Likes_Earned" DESC);
+
+--Q7
+
+SELECT cc_id, video_id, likes AS "Populariy", TRUNC(likes/5000,0) AS "Awards", upload_date AS "Post_date"
+FROM VIDEO
+WHERE TRUNC(likes/5000,0) >10;
+
+--Q8
+
+/*The first sentence asks for full name of the user. That code is shown below*/
+SELECT user_full_name
+FROM (
+    SELECT first_name ||' '|| last_name AS user_full_name, v.cc_id, video_id, likes AS "Populariy", TRUNC(likes/5000,0) AS "Awards", upload_date AS "Post_date"
+    FROM video v
+        JOIN content_creators cc
+            ON v.cc_id = cc.cc_id
+        JOIN user_table u
+            ON cc.user_id = u.user_id
+    WHERE TRUNC(likes/5000,0) >10);
+
+
+
+
+--Q9
+
+SELECT SYSDATE AS today_unformatted,
+    TO_CHAR(SYSDATE, 'MM/DD/YYYY') AS today_formatted,
+    1000 AS likes,
+    0.0325 AS pay_per_like,
+    10 AS pay_per_video,
+    1000*0.0325 AS pay_sum,
+    10+1000*0.0325 AS video_total
+    
+FROM Dual;
+
+--Q10
+
+SELECT likes, 0.0325 AS pay_per_like, 10 AS pay_per_video,likes*0.0325 AS pay_sum, 10+likes*0.0325 AS video_total,TO_CHAR(upload_date, 'MM/DD/YYYY') AS upload_date
+FROM video 
+ORDER BY video_total DESC;
+
+--Q11
+
+SELECT first_name, last_name, birthdate, cc_flag, c.comment_body
+FROM user_table u
+    JOIN comments c
+    ON u.user_id = c.user_id
+ORDER BY LENGTH(c.comment_body) DESC;
+
+--Q12
+
+SELECT u.user_id, u.first_name ||' '|| u.last_name AS user__name,t.topic_id, topic_name
+FROM user_table u
+    JOIN user_topic_subsc utc
+        ON u.user_id = utc.user_id
+    JOIN topic t
+        ON utc.topic_id = t.topic_id
+WHERE topic_name = 'SQL';
+
+--Q13
+
+SELECT v.title, v.subtitle, u.first_name, u.last_name, u.cc_flag, c.comment_body
+FROM video v
+    JOIN COMMENTS c
+        ON c.video_id = v.video_id
+    JOIN user_table u
+        ON u.user_id = c.user_id
+WHERE v.video_id = 100000
+ORDER BY u.first_name,u.last_name;
+
+--Q14
+
+SELECT u.first_name, u.last_name, u.email
+FROM user_table u
+    LEFT JOIN comments c
+        ON u.user_id = c.user_id
+WHERE c.comment_body IS NULL;
+
+--Q15
+
+SELECT '1-Top-Tier' AS video_tier, video_id, revenue, views
+FROM video
+WHERE views>=30000
+union
+SELECT '2-Mid-Tier' AS video_tier, video_id, revenue, views
+FROM video
+WHERE views<30000 and views>=20000
+union
+SELECT '3-Low-Tier' AS video_tier, video_id, revenue, views
+FROM video
+WHERE views<20000
+order by revenue desc;
+
+--Q16
+
+
+SELECT cc_username
+FROM (
+    SELECT cc.cc_username, SUM(REVENUE)
+    FROM video v
+        JOIN content_creators cc
+            ON v.cc_id = cc.cc_id
+    GROUP BY cc.cc_username
+    order by SUM(revenue) desc)
+where rownum = 1;
+
+/*According to the code below, Elementary SQL is the most successful in terms of awards*/
+SELECT cc_username
+FROM (
+    SELECT cc.cc_username, v.cc_id, video_id, likes AS "Populariy", TRUNC(likes/5000,0) AS "Awards", upload_date AS "Post_date"
+    FROM video v
+        JOIN content_creators cc
+            ON v.cc_id = cc.cc_id
+        JOIN user_table u
+            ON cc.user_id = u.user_id
+    WHERE TRUNC(likes/5000,0) >10);
+
+
+/*So, it's the same person */
+
+--Q17
+--Showing the distinct cards
+Select distinct first_name, last_name, card_type
+from (
+    SELECT u.first_name,u.last_name, credit.card_type
+    FROM creditcard credit
+        JOIN content_creators c
+            ON credit.contentcreator_id = c.cc_id
+        JOIN user_table u
+            ON u.user_id = c.user_id)
+order by last_name;      
